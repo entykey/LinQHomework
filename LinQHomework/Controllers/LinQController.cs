@@ -12,8 +12,6 @@
         private readonly AppDbContext _context;
 
 
-        private readonly string _connectionString;
-
         public LinQController(AppDbContext context)
         {
             _context = context;
@@ -51,6 +49,69 @@
             var sql = orders.ToQueryString();
             Console.WriteLine($"\n\n\nCompiled SQL: {sql}\n\n\n");
             var ordersList = await orders.ToListAsync();
+            return Ok(orders);
+        }
+
+        [HttpGet("[action]")]
+        public async Task<IActionResult> GetRecentOrders(int days = 30)
+        {
+            var cutoffDate = DateTime.Now.AddDays(-days);
+            var recentOrders = await _context.Orders
+                .Where(o => o.OrderDate >= cutoffDate)
+                .OrderByDescending(o => o.OrderDate)
+                .Select(o => new
+                {
+                    o.OrderId,
+                    o.OrderDate,
+                    CustomerName = o.Customer.Name,
+                    ItemsCount = o.OrderItems.Count
+                })
+                .ToListAsync();
+
+            return Ok(recentOrders);
+        }
+
+        [HttpGet("[action]")]
+        public async Task<IActionResult> GetOrdersByTimePeriod(string period = "month")
+        {
+            DateTime startDate = period.ToLower() switch
+            {
+                "day" => DateTime.Now.AddDays(-1),
+                "week" => DateTime.Now.AddDays(-7),
+                "month" => DateTime.Now.AddMonths(-1),
+                "year" => DateTime.Now.AddYears(-1),
+                _ => DateTime.Now.AddMonths(-1) // default to month
+            };
+
+            var orders = await _context.Orders
+                .Where(o => o.OrderDate >= startDate)
+                .OrderByDescending(o => o.OrderDate)
+                .ToListAsync();
+
+            return Ok(orders);
+        }
+
+        // example: http://localhost:5000/GetOrdersBetweenDates?fromDate=2000-05-14&toDate=2025-05-20
+        [HttpGet("[action]")]
+        public async Task<IActionResult> GetOrdersBetweenDates(DateTime? fromDate, DateTime? toDate)
+        {
+            // Set default values if not provided
+            fromDate ??= DateTime.Now.AddMonths(-3);
+            toDate ??= DateTime.Now;
+
+            var orders = await _context.Orders
+                .Where(o => o.OrderDate >= fromDate && o.OrderDate <= toDate)
+                .OrderBy(o => o.OrderDate)
+                .Select(o => new
+                {
+                    o.OrderId,
+                    o.OrderDate,
+                    Customer = o.Customer.Name,
+                    TotalItems = o.OrderItems.Sum(oi => oi.Quantity),
+                    TotalValue = o.OrderItems.Sum(oi => oi.Quantity * oi.Product.Price)
+                })
+                .ToListAsync();
+
             return Ok(orders);
         }
 
