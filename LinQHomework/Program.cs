@@ -9,7 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add database context to dependency injection container
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("myDb1")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("MSSQLServer")));
 
 
 builder.Services.AddControllers();
