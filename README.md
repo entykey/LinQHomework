@@ -824,6 +824,56 @@
 ```
 
 **http://localhost:5000/RetrieveOrdersIncludeAllProps**
+Code:
+```csharp
+[HttpGet("[action]")]
+        public async Task<IActionResult> RetrieveOrdersIncludeAllProps()
+        {
+            var orders = _context.Orders
+                .Include(o => o.OrderItems)
+                    .ThenInclude(oi => oi.Product)  // Product can only be accessed through OrderItem
+                .Include(o => o.Customer)
+
+                // create customized return object:
+                .Select(o => new // .Select(o => new Order  // Order's OrderItem is JsonIgnored
+                {
+                    OrderId = o.OrderId,
+                    OrderDate = o.OrderDate,
+                    Customer = o.Customer,
+                    OrderItems = o.OrderItems.Select(oi => new OrderItem
+                    {
+                        OrderItemId = oi.OrderItemId,
+                        OrderId = oi.OrderId,
+                        //ProductId = oi.ProductId,
+                        Quantity = oi.Quantity,
+                        Product = oi.Product    // object
+                    }).ToList(),
+                    Total = o.OrderItems.Sum(oi => oi.Quantity * oi.Product.Price)
+                });
+
+
+            #region compiled sql:
+            //            SELECT[o].[OrderId], [o].[OrderDate], [c].[CustomerId], [c].[Email], [c].[Name], [t].[OrderItemId], [t].[OrderId], [t].[ProductId], [t].[Quantity], [t].[ProductId0], [t].[Name], [t].[Price], (
+            //    SELECT COALESCE(SUM(CAST([o1].[Quantity] AS decimal(18, 2)) * [p0].[Price]), 0.0)
+            //    FROM[OrderItems] AS[o1]
+            //    INNER JOIN[Products] AS[p0] ON[o1].[ProductId] = [p0].[ProductId]
+            //    WHERE[o].[OrderId] = [o1].[OrderId])
+            //FROM[Orders] AS[o]
+            //INNER JOIN[Customers] AS[c] ON[o].[CustomerId] = [c].[CustomerId]
+            //LEFT JOIN(
+            //    SELECT[o0].[OrderItemId], [o0].[OrderId], [o0].[ProductId], [o0].[Quantity], [p].[ProductId] AS[ProductId0], [p].[Name], [p].[Price]
+            //    FROM [OrderItems] AS [o0]
+            //    INNER JOIN [Products] AS[p] ON [o0].[ProductId] = [p].[ProductId]
+            //) AS[t] ON[o].[OrderId] = [t].[OrderId]
+            //ORDER BY[o].[OrderId], [c].[CustomerId], [t].[OrderId], [t].[ProductId]
+            #endregion
+            var sql = orders.ToQueryString();
+            Console.WriteLine($"\n\n\nCompiled SQL: {sql}\n\n\n");
+            var ordersList = await orders.ToListAsync();
+            return Ok(orders);
+        }
+```
+Response:
 ```
 [
   {
