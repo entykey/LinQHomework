@@ -18,6 +18,20 @@
 ![OrderItem Records](imgs/linqhomework_orderitem.png)  
 *Figure 5: OrderItem records*
 
+### Models
+```csharp
+public class Order
+    {
+        public int OrderId { get; set; }
+        public DateTime OrderDate { get; set; }
+        public int CustomerId { get; set; }
+        public Customer Customer { get; set; }
+
+        [JsonIgnore]
+        public virtual List<OrderItem> OrderItems { get; set; }
+    }
+
+```
 
 ### API Documentation
 ![Swagger UI Preview](imgs/swagger_preview.png)  
