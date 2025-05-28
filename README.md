@@ -1,23 +1,5 @@
 # LinQHomework
 
-<div align="center">
-
-### Database Schema Diagram
-![Entity Relationship Diagram](imgs/linqhomework_diagram.png)  
-*Figure 1: Database schema diagram showing tables and relationships*
-
-![Customer Records](imgs/linqhomework_customer.png)  
-*Figure 2: Customer records*
-
-![Product Records](imgs/linqhomework_product.png)  
-*Figure 3: Product records*
-
-![Order Records](imgs/linqhomework_order.png)  
-*Figure 4: Order records*
-
-![OrderItem Records](imgs/linqhomework_orderitem.png)  
-*Figure 5: OrderItem records*
-
 ### Models
 ```csharp
 public class Order
@@ -50,8 +32,35 @@ public class Product
         [JsonIgnore]
         public virtual List<OrderItem> OrderItems { get; set; }
     }
+public class Customer
+    {
+        public int CustomerId { get; set; }
+        public string Name { get; set; }
+        public string Email { get; set; }
 
+        [JsonIgnore]
+        public virtual List<Order> Orders { get; set; }
+    }
 ```
+
+<div align="center">
+
+### Database Schema Diagram
+![Entity Relationship Diagram](imgs/linqhomework_diagram.png)  
+*Figure 1: Database schema diagram showing tables and relationships*
+
+![Customer Records](imgs/linqhomework_customer.png)  
+*Figure 2: Customer records*
+
+![Product Records](imgs/linqhomework_product.png)  
+*Figure 3: Product records*
+
+![Order Records](imgs/linqhomework_order.png)  
+*Figure 4: Order records*
+
+![OrderItem Records](imgs/linqhomework_orderitem.png)  
+*Figure 5: OrderItem records*
+
 
 ### API Documentation
 ![Swagger UI Preview](imgs/swagger_preview.png)  
